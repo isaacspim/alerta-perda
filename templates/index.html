@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Painel de Validades e Alertas</h2>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Código</th>
+                    <th>Estoque</th>
+                    <th>Validade</th>
+                    <th>Dias Restantes</th>
+                    <th>Status / Ação</th>
+                    <th>Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prod in produtos %}
+                <tr>
+                    <td class="fw-semibold">{{ prod.nome }}</td>
+                    <td><span class="badge bg-secondary">{{ prod.categoria }}</span></td>
+                    <td><code>{{ prod.codigo_barras }}</code></td>
+                    <td>{{ prod.quantidade_estoque }} {{ prod.unidade_medida }}</td>
+                    <td>{{ prod.data_validade.strftime('%d/%m/%Y') }}</td>
+                    <td><strong>{{ prod.dias_para_vencer }} dia(s)</strong></td>
+                    <td>
+                        <span class="badge bg-{{ prod.status_alerta.tipo }}">
+                            {{ prod.status_alerta.texto }}
+                        </span>
+                    </td>
+                    <td>
+                          <a href="{{ url_for('registrar_baixa', produto_id=prod.id) }}" class="btn btn-outline-danger btn-sm">Dar Baixa</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">Nenhum produto cadastrado ainda.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

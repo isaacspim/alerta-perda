@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4">
+            <h3 class="mb-3">Cadastrar Produto</h3>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Nome do Produto</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Ex: Morango Bandeja 250g" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Categoria</label>
+                    <select name="categoria" class="form-select" required>
+                        <option value="Hortifrúti (FLV)">Hortifrúti (FLV)</option>
+                        <option value="Carnes e Aves">Carnes e Aves</option>
+                        <option value="Laticínios e Frios">Laticínios e Frios</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Código de Barras / SKU</label>
+                    <input type="text" name="codigo_barras" class="form-control" placeholder="789..." required>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Data de Validade</label>
+                        <input type="date" name="data_validade" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Estoque</label>
+                        <input type="number" step="0.01" name="quantidade_estoque" class="form-control" required>
+                    </div>
+                    <div class="col-md-2 mb-3">
+                        <label class="form-label">Un.</label>
+                        <select name="unidade_medida" class="form-select">
+                            <option value="kg">kg</option>
+                            <option value="un">un</option>
+                            <option value="bdj">bdj</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Voltar</a>
+                    <button type="submit" class="btn btn-success">Salvar Produto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
