@@ -1,18 +1,19 @@
 import os
-from datetime import datetime
+from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, flash
-from models import db, Produto, RegistroPerda
+from models import db, Produto, RegistroPerda, Usuario, InspecaoSetor
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'integrador'
+app.config['SECRET_KEY'] = 'chave-secreta-desenvolvimento-pi'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///alerta_perda.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
-# Cria as tabelas no SQLite na primeira execução
 with app.app_context():
     db.create_all()
+
+# --- Rotas Principais de Produtos ---
 
 @app.route('/')
 def index():
@@ -48,46 +49,103 @@ def novo_produto():
 @app.route('/produto/<int:produto_id>/baixa', methods=['GET', 'POST'])
 def registrar_baixa(produto_id):
     produto = Produto.query.get_or_404(produto_id)
+    usuarios = Usuario.query.order_by(Usuario.nome.asc()).all()
     
     if request.method == 'POST':
         quantidade = float(request.form.get('quantidade_perdida', 0))
         motivo = request.form.get('motivo')
+        usuario_id = request.form.get('usuario_id') or None
         observacao = request.form.get('observacao', '')
 
-        # Cria o registro de perda no banco
         registro = RegistroPerda(
             produto_id=produto.id,
+            usuario_id=usuario_id,
             quantidade_perdida=quantidade,
             motivo=motivo,
             observacao=observacao
         )
         
-        # Abate a quantidade do estoque atual
         produto.quantidade_estoque = max(0.0, produto.quantidade_estoque - quantidade)
         
         db.session.add(registro)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('historico_perdas'))
 
-    return render_template('registrar_baixa.html', produto=produto)
+    return render_template('registrar_baixa.html', produto=produto, usuarios=usuarios)
 
 @app.route('/historico-perdas')
 def historico_perdas():
-    # Busca todas as perdas registradas ordenadas pela mais recente
     perdas = RegistroPerda.query.order_by(RegistroPerda.data_registro.desc()).all()
-    
-    # Cálculo rápido para o resumo no topo
     total_descartes = sum(p.quantidade_perdida for p in perdas)
-    
     return render_template('historico_perdas.html', perdas=perdas, total_descartes=total_descartes)
+
+# --- Rotas de Usuários / Fiscais ---
+
+@app.route('/usuarios', methods=['GET', 'POST'])
+def usuarios():
+    if request.method == 'POST':
+        nome = request.form.get('nome')
+        matricula = request.form.get('matricula')
+        cargo = request.form.get('cargo')
+
+        novo_usuario = Usuario(nome=nome, matricula=matricula, cargo=cargo)
+        db.session.add(novo_usuario)
+        db.session.commit()
+        return redirect(url_for('usuarios'))
+
+    lista_usuarios = Usuario.query.order_by(Usuario.nome.asc()).all()
+    return render_template('usuarios.html', usuarios=lista_usuarios)
+
+# --- Rotas de Inspeção e Controle de Temperatura ---
+
+@app.route('/inspecoes')
+def inspecoes():
+    lista_inspecoes = InspecaoSetor.query.order_by(InspecaoSetor.data_inspecao.desc()).all()
+    return render_template('inspecoes.html', inspecoes=lista_inspecoes)
+
+@app.route('/inspecoes/nova', methods=['GET', 'POST'])
+def nova_inspecao():
+    usuarios = Usuario.query.order_by(Usuario.nome.asc()).all()
+    
+    if request.method == 'POST':
+        fiscal_id = request.form.get('fiscal_id')
+        setor = request.form.get('setor')
+        temperatura = request.form.get('temperatura_aferida')
+        status = request.form.get('status_conformidade')
+        observacao = request.form.get('observacao', '')
+
+        temp_valor = float(temperatura) if temperatura else None
+
+        inspecao = InspecaoSetor(
+            fiscal_id=fiscal_id,
+            setor=setor,
+            temperatura_aferida=temp_valor,
+            status_conformidade=status,
+            observacao=observacao
+        )
+        db.session.add(inspecao)
+        db.session.commit()
+        return redirect(url_for('inspecoes'))
+
+    return render_template('nova_inspecao.html', usuarios=usuarios)
+
+# --- Endpoint de API (Requisito Univesp) ---
 
 @app.route('/api/produtos/alertas')
 def api_alertas():
-    produtos = Produto.query.filter(Produto.data_validade <= date.today()).all()
-    return {
-        "total": len(produtos),
-        "itens": [{"nome": p.nome, "dias": p.dias_para_vencer, "categoria": p.categoria} for p in produtos]
-    }
+    produtos = Produto.query.all()
+    dados = [
+        {
+            "id": p.id,
+            "nome": p.nome,
+            "categoria": p.categoria,
+            "validade": p.data_validade.strftime('%Y-%m-%d'),
+            "dias_restantes": p.dias_para_vencer,
+            "alerta": p.status_alerta
+        }
+        for p in produtos if p.dias_para_vencer <= 2
+    ]
+    return {"total_criticos": len(dados), "produtos": dados}
 
 if __name__ == '__main__':
     app.run(debug=True)

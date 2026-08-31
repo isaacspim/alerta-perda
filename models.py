@@ -3,6 +3,21 @@ from datetime import datetime, date
 
 db = SQLAlchemy()
 
+class Usuario(db.Model):
+    __tablename__ = 'usuarios'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), nullable=False)
+    matricula = db.Column(db.String(20), unique=True, nullable=False)
+    cargo = db.Column(db.String(50), nullable=False, default='Fiscal de Loja')
+    
+    perdas_registradas = db.relationship('RegistroPerda', backref='responsavel', lazy=True)
+    inspecoes = db.relationship('InspecaoSetor', backref='fiscal', lazy=True)
+
+    def __repr__(self):
+        return f"{self.nome} ({self.cargo})"
+
+
 class Produto(db.Model):
     __tablename__ = 'produtos'
     
@@ -34,12 +49,25 @@ class Produto(db.Model):
         return {'tipo': 'success', 'texto': 'Regular'}
 
 
+class InspecaoSetor(db.Model):
+    __tablename__ = 'inspecoes_setor'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    fiscal_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
+    setor = db.Column(db.String(50), nullable=False)  # Ex: Ilha de Congelados, Balcão Carnes, Gôndola FLV
+    temperatura_aferida = db.Column(db.Float, nullable=True)  # Em °C
+    status_conformidade = db.Column(db.String(30), nullable=False)  # Conforme, Alerta, Crítico
+    observacao = db.Column(db.Text, nullable=True)
+    data_inspecao = db.Column(db.DateTime, default=datetime.now)
+
+
 class RegistroPerda(db.Model):
     __tablename__ = 'registros_perda'
     
     id = db.Column(db.Integer, primary_key=True)
     produto_id = db.Column(db.Integer, db.ForeignKey('produtos.id'), nullable=False)
+    usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     quantidade_perdida = db.Column(db.Float, nullable=False)
     motivo = db.Column(db.String(100), nullable=False)
-    data_registro = db.Column(db.DateTime, default=datetime.utcnow)
+    data_registro = db.Column(db.DateTime, default=datetime.now)
     observacao = db.Column(db.Text, nullable=True)

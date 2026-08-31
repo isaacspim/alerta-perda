@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm p-3">
+            <h4 class="mb-3">Cadastrar Fiscal/Operador</h4>
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Nome Completo</label>
+                    <input type="text" name="nome" class="form-control" placeholder="Ex: Carlos Silva" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Matrícula</label>
+                    <input type="text" name="matricula" class="form-control" placeholder="Ex: MAT-1020" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Cargo / Função</label>
+                    <select name="cargo" class="form-select" required>
+                        <option value="Fiscal de Prevenção de Perdas">Fiscal de Prevenção de Perdas</option>
+                        <option value="Gerente de Loja">Gerente de Loja</option>
+                        <option value="Líder de Hortifrúti (FLV)">Líder de Hortifrúti (FLV)</option>
+                        <option value="Encarregado de Açougue">Encarregado de Açougue</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-dark w-100">Salvar Cadastro</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-secondary text-white fw-bold">
+                Equipe Cadastrada
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nome</th>
+                            <th>Cargo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for u in usuarios %}
+                        <tr>
+                            <td><code>{{ u.matricula }}</code></td>
+                            <td class="fw-semibold">{{ u.nome }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ u.cargo }}</span></td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center py-4 text-muted">Nenhum colaborador cadastrado.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

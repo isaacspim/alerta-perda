@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2>Inspeções de Balcões e Mostruários</h2>
+        <p class="text-muted mb-0">Monitoramento preventivo de temperatura e conformidade dos setores.</p>
+    </div>
+    <a href="{{ url_for('nova_inspecao') }}" class="btn btn-primary btn-sm">+ Nova Ronda / Inspeção</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Setor</th>
+                    <th>Fiscal Responsável</th>
+                    <th>Temperatura Aferida</th>
+                    <th>Status</th>
+                    <th>Observação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in inspecoes %}
+                <tr>
+                    <td>{{ i.data_inspecao.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="fw-semibold">{{ i.setor }}</td>
+                    <td>{{ i.fiscal.nome }}</td>
+                    <td>
+                        {% if i.temperatura_aferida is not none %}
+                            <strong>{{ i.temperatura_aferida }}°C</strong>
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if i.status_conformidade == 'Conforme' %}
+                            <span class="badge bg-success">Conforme</span>
+                        {% elif i.status_conformidade == 'Alerta de Temperatura' %}
+                            <span class="badge bg-warning text-dark">Alerta de Temperatura</span>
+                        {% else %}
+                            <span class="badge bg-danger">Crítico / Não Conforme</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ i.observacao or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">Nenhuma inspeção registrada.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
