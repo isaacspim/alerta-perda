@@ -71,6 +71,16 @@ def registrar_baixa(produto_id):
 
     return render_template('registrar_baixa.html', produto=produto)
 
+@app.route('/historico-perdas')
+def historico_perdas():
+    # Busca todas as perdas registradas ordenadas pela mais recente
+    perdas = RegistroPerda.query.order_by(RegistroPerda.data_registro.desc()).all()
+    
+    # Cálculo rápido para o resumo no topo
+    total_descartes = sum(p.quantidade_perdida for p in perdas)
+    
+    return render_template('historico_perdas.html', perdas=perdas, total_descartes=total_descartes)
+
 @app.route('/api/produtos/alertas')
 def api_alertas():
     produtos = Produto.query.filter(Produto.data_validade <= date.today()).all()

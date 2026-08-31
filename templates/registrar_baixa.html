@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm p-4">
+            <h3 class="mb-2 text-danger">Registrar Baixa / Quebra</h3>
+            <p class="text-muted mb-4">
+                Produto: <strong>{{ produto.nome }}</strong> (Estoque atual: {{ produto.quantidade_estoque }} {{ produto.unidade_medida }})
+            </p>
+
+            <form method="POST">
+                <div class="mb-3">
+                    <label class="form-label">Quantidade a Descartar</label>
+                    <input type="number" step="0.01" max="{{ produto.quantidade_estoque }}" name="quantidade_perdida" class="form-control" placeholder="0.00" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Motivo da Perda</label>
+                    <select name="motivo" class="form-select" required>
+                        <option value="Deterioração natural (FLV)">Deterioração natural (FLV)</option>
+                        <option value="Produto vencido">Produto vencido</option>
+                        <option value="Falha de refrigeração / Balcão">Falha de refrigeração / Balcão</option>
+                        <option value="Avaria / Embalagem rompida">Avaria / Embalagem rompida</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Observações</label>
+                    <textarea name="observacao" class="form-control" rows="3" placeholder="Detalhes adicionais (opcional)"></textarea>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-danger">Confirmar Baixa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

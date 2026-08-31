@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2>Histórico de Quebras e Descartes</h2>
+        <p class="text-muted mb-0">Registro consolidado de perdas operacionais para auditoria.</p>
+    </div>
+    <div class="card bg-danger text-white px-3 py-2 text-center shadow-sm">
+        <small class="fw-bold text-uppercase">Total Descartado</small>
+        <span class="fs-5 fw-bold">{{ "%.2f"|format(total_descartes) }} kg/un</span>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Data/Hora</th>
+                    <th>Produto</th>
+                    <th>Categoria</th>
+                    <th>Qtd. Descartada</th>
+                    <th>Motivo da Perda</th>
+                    <th>Observações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for perda in perdas %}
+                <tr>
+                    <td>{{ perda.data_registro.strftime('%d/%m/%Y %H:%M') }}</td>
+                    <td class="fw-semibold">{{ perda.produto.nome }}</td>
+                    <td><span class="badge bg-secondary">{{ perda.produto.categoria }}</span></td>
+                    <td class="text-danger fw-bold">{{ perda.quantidade_perdida }} {{ perda.produto.unidade_medida }}</td>
+                    <td><span class="badge bg-warning text-dark">{{ perda.motivo }}</span></td>
+                    <td>{{ perda.observacao or '-' }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center py-4 text-muted">Nenhum registro de quebra realizado até o momento.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
