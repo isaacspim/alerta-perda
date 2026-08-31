@@ -15,3 +15,13 @@ Sistema de monitoramento preditivo de validades e prevenção de perdas no varej
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # ou source venv/bin/activate.fish
+
+2. Instale as dependências:
+    ```bash
+    pip install -r requirements.txt
+
+3. Inicie o servidor:
+    ```bash
+    python app.py
+
+Acesse em: http://127.0.0.1:5000
