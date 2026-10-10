@@ -1,7 +1,8 @@
 import os
 from datetime import datetime, date
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from models import db, Produto, RegistroPerda, Usuario, InspecaoSetor
+from weather import get_weather, get_weather_config
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'chave-secreta-desenvolvimento-pi'
@@ -18,7 +19,9 @@ with app.app_context():
 @app.route('/')
 def index():
     produtos = Produto.query.order_by(Produto.data_validade.asc()).all()
-    return render_template('index.html', produtos=produtos)
+    return render_template(
+        'index.html', produtos=produtos, clima=get_weather(), clima_config=get_weather_config()
+    )
 
 @app.route('/produto/novo', methods=['GET', 'POST'])
 def novo_produto():
@@ -146,6 +149,14 @@ def api_alertas():
         for p in produtos if p.dias_para_vencer <= 2
     ]
     return {"total_criticos": len(dados), "produtos": dados}
+
+
+@app.route('/api/clima')
+def api_clima():
+    clima = get_weather()
+    if clima is None:
+        return jsonify({"erro": "Não foi possível consultar a previsão do tempo agora."}), 503
+    return jsonify(clima)
 
 if __name__ == '__main__':
     app.run(debug=True)

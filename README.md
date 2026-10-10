@@ -8,6 +8,7 @@ Sistema de monitoramento preditivo de validades e prevenção de perdas no varej
 - Monitoramento e inspeção preventiva de temperatura dos balcões refrigerados.
 - Gestão de equipe e fiscais de prevenção.
 - API REST para integração com sistemas de PDV (`/api/produtos/alertas`).
+- Integração meteorológica com Open-Meteo (`/api/clima`) para apoiar a rotina operacional.
 
 ## Como Executar
 
@@ -25,3 +26,13 @@ Sistema de monitoramento preditivo de validades e prevenção de perdas no varej
     python app.py
 
 Acesse em: http://127.0.0.1:5000
+
+## Configuração do clima
+
+Por padrão, a integração consulta Cravinhos-SP. Para configurar a localização do supermercado, defina as variáveis de ambiente abaixo antes de iniciar a aplicação:
+
+```text
+WEATHER_LOCATION=Nome da cidade, UF
+WEATHER_LATITUDE=-21.3393
+WEATHER_LONGITUDE=-47.7295
+```

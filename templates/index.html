@@ -5,6 +5,43 @@
     <h2>Painel de Validades e Alertas</h2>
 </div>
 
+<section class="card shadow-sm mb-4" aria-labelledby="titulo-clima" id="cartao-clima"
+    data-latitude="{{ clima_config.latitude }}" data-longitude="{{ clima_config.longitude }}"
+    data-localidade="{{ clima_config.location }}">
+    <div class="card-body">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap">
+            <div>
+                <h3 id="titulo-clima" class="h5 mb-1">Condições meteorológicas</h3>
+                {% if clima %}
+                    <p class="text-muted mb-0" id="clima-atualizacao">{{ clima.localidade }} · Atualizado em {{ clima.atualizado_em }}</p>
+                {% else %}
+                    <p class="text-muted mb-0" id="clima-atualizacao">Dados temporariamente indisponíveis.</p>
+                {% endif %}
+            </div>
+            <a class="btn btn-outline-primary btn-sm" href="{{ url_for('api_clima') }}" target="_blank" rel="noopener">Ver dados da API</a>
+        </div>
+        <div class="row g-3 mt-1">
+            <div class="col-sm-6 col-lg-3"><strong id="clima-temperatura">{{ clima.temperatura if clima else '--' }}{% if clima %} °C{% endif %}</strong><br><span class="text-muted">Temperatura atual</span></div>
+            <div class="col-sm-6 col-lg-3"><strong id="clima-umidade">{{ clima.umidade if clima else '--' }}{% if clima %}%{% endif %}</strong><br><span class="text-muted">Umidade do ar</span></div>
+            <div class="col-sm-6 col-lg-3"><strong id="clima-chuva">{{ clima.probabilidade_chuva if clima else '--' }}{% if clima %}%{% endif %}</strong><br><span class="text-muted">Probabilidade de chuva</span></div>
+            <div class="col-sm-6 col-lg-3"><strong id="clima-condicao">{{ clima.condicao if clima else '--' }}</strong><br><span class="text-muted">Condição atual</span></div>
+        </div>
+        <p class="small text-muted mt-3 mb-0" id="clima-previsao">{% if clima %}Previsão de hoje: mínima de {{ clima.minima }} °C e máxima de {{ clima.maxima }} °C.{% else %}Carregando condições meteorológicas...{% endif %} Use essas informações como apoio à rotina; elas não substituem a conferência dos produtos e equipamentos.</p>
+    </div>
+</section>
+
+{% if clima %}
+<section class="alert alert-{{ clima.recomendacao.nivel }}" aria-labelledby="titulo-recomendacao-climatica">
+    <h3 id="titulo-recomendacao-climatica" class="h5">{{ clima.recomendacao.titulo }}</h3>
+    <p>{{ clima.recomendacao.mensagem }}</p>
+    <ul class="mb-0">
+        {% for acao in clima.recomendacao.acoes %}
+        <li>{{ acao }}</li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
 <div class="card shadow-sm">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
@@ -47,4 +84,8 @@
         </table>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/weather.js') }}"></script>
 {% endblock %}
