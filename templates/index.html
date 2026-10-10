@@ -72,7 +72,8 @@
                         </span>
                     </td>
                     <td>
-                          <a href="{{ url_for('registrar_baixa', produto_id=prod.id) }}" class="btn btn-outline-danger btn-sm">Dar Baixa</a>
+                        <a href="{{ url_for('lotes_produto', produto_id=prod.id) }}" class="btn btn-outline-primary btn-sm">Lotes</a>
+                        <a href="{{ url_for('registrar_baixa', produto_id=prod.id) }}" class="btn btn-outline-danger btn-sm">Dar Baixa</a>
                     </td>
                 </tr>
                 {% else %}

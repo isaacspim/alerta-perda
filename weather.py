@@ -22,9 +22,9 @@ WEATHER_CODES = {
 def get_weather_config():
     """Retorna a localização pública usada pela integração meteorológica."""
     return {
-        "latitude": os.getenv("WEATHER_LATITUDE", "-21.3393"),
-        "longitude": os.getenv("WEATHER_LONGITUDE", "-47.7295"),
-        "location": os.getenv("WEATHER_LOCATION", "Cravinhos, SP"),
+        "latitude": os.getenv("WEATHER_LATITUDE", "-21.0094"),
+        "longitude": os.getenv("WEATHER_LONGITUDE", "-48.2217"),
+        "location": os.getenv("WEATHER_LOCATION", "Pitangueiras, SP"),
     }
 
 

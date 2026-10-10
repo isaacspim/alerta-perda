@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, jsonify
-from models import db, Produto, RegistroPerda, Usuario, InspecaoSetor
+from models import db, Produto, RegistroPerda, Usuario, InspecaoSetor, Lote
 from weather import get_weather, get_weather_config
 
 app = Flask(__name__)
@@ -48,6 +48,44 @@ def novo_produto():
         return redirect(url_for('index'))
 
     return render_template('novo_produto.html')
+
+
+@app.route('/produto/<int:produto_id>/lotes')
+def lotes_produto(produto_id):
+    produto = Produto.query.get_or_404(produto_id)
+    lotes = Lote.query.filter_by(produto_id=produto.id).order_by(Lote.data_validade.asc()).all()
+    return render_template('lotes_produto.html', produto=produto, lotes=lotes)
+
+
+@app.route('/produto/<int:produto_id>/lotes/novo', methods=['GET', 'POST'])
+def novo_lote(produto_id):
+    produto = Produto.query.get_or_404(produto_id)
+
+    if request.method == 'POST':
+        codigo_lote = request.form.get('codigo_lote', '').strip()
+        existing_lote = Lote.query.filter_by(produto_id=produto.id, codigo_lote=codigo_lote).first()
+        if existing_lote:
+            return render_template(
+                'novo_lote.html', produto=produto,
+                erro='Já existe um lote com este código para este produto.'
+            )
+
+        quantidade = float(request.form.get('quantidade', 0))
+        lote = Lote(
+            produto_id=produto.id,
+            codigo_lote=codigo_lote,
+            data_entrada=datetime.strptime(request.form.get('data_entrada'), '%Y-%m-%d').date(),
+            data_validade=datetime.strptime(request.form.get('data_validade'), '%Y-%m-%d').date(),
+            quantidade_inicial=quantidade,
+            quantidade_atual=quantidade,
+            local_armazenamento=request.form.get('local_armazenamento', '').strip() or None,
+        )
+        produto.quantidade_estoque += quantidade
+        db.session.add(lote)
+        db.session.commit()
+        return redirect(url_for('lotes_produto', produto_id=produto.id))
+
+    return render_template('novo_lote.html', produto=produto)
 
 @app.route('/produto/<int:produto_id>/baixa', methods=['GET', 'POST'])
 def registrar_baixa(produto_id):

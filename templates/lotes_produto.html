@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h2>Lotes de {{ produto.nome }}</h2>
+        <p class="text-muted mb-0">Controle por lote · {{ produto.unidade_medida }}</p>
+    </div>
+    <a href="{{ url_for('novo_lote', produto_id=produto.id) }}" class="btn btn-success">+ Novo Lote</a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-secondary">
+                <tr>
+                    <th>Código do lote</th>
+                    <th>Entrada</th>
+                    <th>Validade</th>
+                    <th>Saldo</th>
+                    <th>Local</th>
+                    <th>Status / Ação</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for lote in lotes %}
+                <tr>
+                    <td class="fw-semibold">{{ lote.codigo_lote }}</td>
+                    <td>{{ lote.data_entrada.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ lote.data_validade.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ lote.quantidade_atual }} {{ produto.unidade_medida }}</td>
+                    <td>{{ lote.local_armazenamento or '-' }}</td>
+                    <td><span class="badge bg-{{ lote.status_alerta.tipo }}">{{ lote.status_alerta.texto }}</span></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center py-4 text-muted">Nenhum lote cadastrado para este produto.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<a href="{{ url_for('index') }}" class="btn btn-outline-secondary mt-3">Voltar ao painel</a>
+{% endblock %}

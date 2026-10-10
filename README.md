@@ -29,10 +29,10 @@ Acesse em: http://127.0.0.1:5000
 
 ## Configuração do clima
 
-Por padrão, a integração consulta Cravinhos-SP. Para configurar a localização do supermercado, defina as variáveis de ambiente abaixo antes de iniciar a aplicação:
+Por padrão, a integração consulta Pitangueiras-SP. Para configurar a localização do supermercado, defina as variáveis de ambiente abaixo antes de iniciar a aplicação:
 
 ```text
 WEATHER_LOCATION=Nome da cidade, UF
-WEATHER_LATITUDE=-21.3393
-WEATHER_LONGITUDE=-47.7295
+WEATHER_LATITUDE=-21.0094
+WEATHER_LONGITUDE=-48.2217
 ```
