@@ -26,28 +26,60 @@ def index():
 @app.route('/produto/novo', methods=['GET', 'POST'])
 def novo_produto():
     if request.method == 'POST':
-        nome = request.form.get('nome')
-        categoria = request.form.get('categoria')
-        codigo_barras = request.form.get('codigo_barras')
-        validade_str = request.form.get('data_validade')
-        quantidade = float(request.form.get('quantidade_estoque', 0))
-        unidade = request.form.get('unidade_medida', 'kg')
+        modo_entrada = request.form.get('modo_entrada', 'novo_produto')
+        quantidade = float(request.form.get('quantidade_entrada', 0))
 
-        data_validade = datetime.strptime(validade_str, '%Y-%m-%d').date()
+        if modo_entrada == 'lote_existente':
+            lote = Lote.query.get_or_404(request.form.get('lote_id'))
+            lote.quantidade_inicial += quantidade
+            lote.quantidade_atual += quantidade
+            lote.produto.quantidade_estoque += quantidade
+            db.session.commit()
+            return redirect(url_for('lotes_produto', produto_id=lote.produto_id))
 
-        produto = Produto(
-            nome=nome,
-            categoria=categoria,
-            codigo_barras=codigo_barras,
-            data_validade=data_validade,
-            quantidade_estoque=quantidade,
-            unidade_medida=unidade
+        if modo_entrada == 'produto_existente_novo_lote':
+            produto = Produto.query.get_or_404(request.form.get('produto_id'))
+        else:
+            data_validade = datetime.strptime(request.form.get('data_validade'), '%Y-%m-%d').date()
+            produto = Produto(
+                nome=request.form.get('nome'),
+                categoria=request.form.get('categoria'),
+                codigo_barras=request.form.get('codigo_barras'),
+                data_validade=data_validade,
+                quantidade_estoque=quantidade,
+                unidade_medida=request.form.get('unidade_medida', 'kg')
+            )
+            db.session.add(produto)
+            db.session.flush()
+
+        codigo_lote = request.form.get('codigo_lote', '').strip()
+        existing_lote = Lote.query.filter_by(produto_id=produto.id, codigo_lote=codigo_lote).first()
+        if existing_lote:
+            produtos = Produto.query.order_by(Produto.nome.asc()).all()
+            lotes = Lote.query.order_by(Lote.data_validade.asc()).all()
+            return render_template(
+                'novo_produto.html', produtos=produtos, lotes=lotes,
+                erro='Já existe um lote com este código para o produto selecionado.'
+            )
+
+        lote = Lote(
+            produto_id=produto.id,
+            codigo_lote=codigo_lote,
+            data_entrada=datetime.strptime(request.form.get('data_entrada'), '%Y-%m-%d').date(),
+            data_validade=datetime.strptime(request.form.get('data_validade'), '%Y-%m-%d').date(),
+            quantidade_inicial=quantidade,
+            quantidade_atual=quantidade,
+            local_armazenamento=request.form.get('local_armazenamento', '').strip() or None,
         )
-        db.session.add(produto)
+        if modo_entrada == 'produto_existente_novo_lote':
+            produto.quantidade_estoque += quantidade
+        db.session.add(lote)
         db.session.commit()
-        return redirect(url_for('index'))
+        return redirect(url_for('lotes_produto', produto_id=produto.id))
 
-    return render_template('novo_produto.html')
+    produtos = Produto.query.order_by(Produto.nome.asc()).all()
+    lotes = Lote.query.order_by(Lote.data_validade.asc()).all()
+    return render_template('novo_produto.html', produtos=produtos, lotes=lotes)
 
 
 @app.route('/produto/<int:produto_id>/lotes')

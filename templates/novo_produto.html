@@ -2,50 +2,38 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-lg-8">
         <div class="card shadow-sm p-4">
-            <h3 class="mb-3">Cadastrar Produto</h3>
-            <form method="POST">
-                <div class="mb-3">
-                    <label class="form-label">Nome do Produto</label>
-                    <input type="text" name="nome" class="form-control" placeholder="Ex: Morango Bandeja 250g" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Categoria</label>
-                    <select name="categoria" class="form-select" required>
-                        <option value="Hortifrúti (FLV)">Hortifrúti (FLV)</option>
-                        <option value="Carnes e Aves">Carnes e Aves</option>
-                        <option value="Laticínios e Frios">Laticínios e Frios</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">Código de Barras / SKU</label>
-                    <input type="text" name="codigo_barras" class="form-control" placeholder="789..." required>
-                </div>
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label class="form-label">Data de Validade</label>
-                        <input type="date" name="data_validade" class="form-control" required>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label class="form-label">Estoque</label>
-                        <input type="number" step="0.01" name="quantidade_estoque" class="form-control" required>
-                    </div>
-                    <div class="col-md-2 mb-3">
-                        <label class="form-label">Un.</label>
-                        <select name="unidade_medida" class="form-select">
-                            <option value="kg">kg</option>
-                            <option value="un">un</option>
-                            <option value="bdj">bdj</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between mt-3">
-                    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Voltar</a>
-                    <button type="submit" class="btn btn-success">Salvar Produto</button>
-                </div>
+            <h2 class="h3 mb-1">Registrar entrada de produto</h2>
+            <p class="text-muted">Informe se é um produto novo, um novo lote ou uma reposição de lote existente.</p>
+            {% if erro %}<div class="alert alert-danger" role="alert">{{ erro }}</div>{% endif %}
+            <form method="POST" id="form-entrada">
+                <fieldset class="mb-4"><legend class="h5">Tipo de entrada</legend>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="origem_produto" id="origem-novo" value="novo" checked><label class="form-check-label" for="origem-novo">Produto novo</label></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="origem_produto" id="origem-existente" value="existente"><label class="form-check-label" for="origem-existente">Produto já cadastrado</label></div>
+                </fieldset>
+                <fieldset id="campos-produto-novo"><legend class="h5">Dados do produto</legend>
+                    <div class="mb-3"><label for="nome" class="form-label">Nome do produto</label><input id="nome" type="text" name="nome" class="form-control" placeholder="Ex.: Morango Bandeja 250g" required></div>
+                    <div class="row"><div class="col-md-6 mb-3"><label for="categoria" class="form-label">Categoria</label><select id="categoria" name="categoria" class="form-select" required><option value="Hortifrúti (FLV)">Hortifrúti (FLV)</option><option value="Carnes e Aves">Carnes e Aves</option><option value="Laticínios e Frios">Laticínios e Frios</option></select></div>
+                    <div class="col-md-6 mb-3"><label for="codigo_barras" class="form-label">Código de barras / SKU</label><input id="codigo_barras" type="text" name="codigo_barras" class="form-control" placeholder="789..." required></div></div>
+                    <div class="mb-3 col-md-3 ps-0"><label for="unidade_medida" class="form-label">Unidade</label><select id="unidade_medida" name="unidade_medida" class="form-select"><option value="kg">kg</option><option value="un">un</option><option value="bdj">bdj</option></select></div>
+                </fieldset>
+                <fieldset id="campos-produto-existente" class="d-none"><legend class="h5">Produto e lote</legend>
+                    <div class="mb-3"><label for="produto_id" class="form-label">Produto cadastrado</label><select id="produto_id" name="produto_id" class="form-select" disabled><option value="">Selecione o produto</option>{% for produto in produtos %}<option value="{{ produto.id }}">{{ produto.nome }} · {{ produto.codigo_barras }}</option>{% endfor %}</select></div>
+                    <div class="form-check"><input class="form-check-input" type="radio" name="tipo_lote" id="lote-novo" value="novo" checked disabled><label class="form-check-label" for="lote-novo">Criar novo lote para este produto</label></div>
+                    <div class="form-check mb-3"><input class="form-check-input" type="radio" name="tipo_lote" id="lote-existente" value="existente" disabled><label class="form-check-label" for="lote-existente">Adicionar quantidade a um lote já cadastrado</label></div>
+                    <div id="selecao-lote-existente" class="d-none mb-3"><label for="lote_id" class="form-label">Lote cadastrado</label><select id="lote_id" name="lote_id" class="form-select" disabled><option value="">Selecione o lote</option>{% for lote in lotes %}<option value="{{ lote.id }}" data-produto-id="{{ lote.produto_id }}">{{ lote.produto.nome }} · Lote {{ lote.codigo_lote }} · validade {{ lote.data_validade.strftime('%d/%m/%Y') }}</option>{% endfor %}</select></div>
+                </fieldset>
+                <fieldset id="campos-novo-lote" class="mt-3"><legend class="h5">Dados do lote</legend>
+                    <div class="row"><div class="col-md-6 mb-3"><label for="codigo_lote" class="form-label">Código do lote</label><input id="codigo_lote" type="text" name="codigo_lote" class="form-control" placeholder="Ex.: TOM-001" required></div><div class="col-md-6 mb-3"><label for="data_entrada" class="form-label">Data de entrada</label><input id="data_entrada" type="date" name="data_entrada" class="form-control" required></div></div>
+                    <div class="row"><div class="col-md-6 mb-3"><label for="data_validade" class="form-label">Data de validade</label><input id="data_validade" type="date" name="data_validade" class="form-control" required></div><div class="col-md-6 mb-3"><label for="local_armazenamento" class="form-label">Local de armazenamento</label><input id="local_armazenamento" type="text" name="local_armazenamento" class="form-control" placeholder="Ex.: Câmara fria 1"></div></div>
+                </fieldset>
+                <div class="mb-3 mt-3"><label for="quantidade_entrada" class="form-label">Quantidade recebida</label><input id="quantidade_entrada" type="number" min="0.01" step="0.01" name="quantidade_entrada" class="form-control" required></div>
+                <input type="hidden" name="modo_entrada" id="modo_entrada" value="novo_produto">
+                <div class="d-flex justify-content-between mt-3"><a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Voltar</a><button type="submit" class="btn btn-success">Registrar entrada</button></div>
             </form>
         </div>
     </div>
 </div>
 {% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='js/stock-entry.js') }}"></script>{% endblock %}
