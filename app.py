@@ -1,6 +1,7 @@
 import os
 from datetime import datetime, date
 from flask import Flask, render_template, request, redirect, url_for, jsonify
+from sqlalchemy import inspect, text
 from models import db, Produto, RegistroPerda, Usuario, InspecaoSetor, Lote
 from weather import get_weather, get_weather_config
 
@@ -13,6 +14,11 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+    schema = inspect(db.engine)
+    existing_columns = {column['name'] for column in schema.get_columns('registros_perda')}
+    if 'lote_id' not in existing_columns:
+        with db.engine.begin() as connection:
+            connection.execute(text('ALTER TABLE registros_perda ADD COLUMN lote_id INTEGER'))
 
 # --- Rotas Principais de Produtos ---
 
@@ -123,15 +129,35 @@ def novo_lote(produto_id):
 def registrar_baixa(produto_id):
     produto = Produto.query.get_or_404(produto_id)
     usuarios = Usuario.query.order_by(Usuario.nome.asc()).all()
+    lotes = Lote.query.filter(
+        Lote.produto_id == produto.id,
+        Lote.quantidade_atual > 0
+    ).order_by(Lote.data_validade.asc()).all()
     
     if request.method == 'POST':
         quantidade = float(request.form.get('quantidade_perdida', 0))
         motivo = request.form.get('motivo')
         usuario_id = request.form.get('usuario_id') or None
         observacao = request.form.get('observacao', '')
+        lote_id = request.form.get('lote_id') or None
+
+        lote = None
+        if lote_id:
+            lote = Lote.query.filter_by(id=lote_id, produto_id=produto.id).first_or_404()
+            if quantidade > lote.quantidade_atual:
+                return render_template(
+                    'registrar_baixa.html', produto=produto, usuarios=usuarios, lotes=lotes,
+                    erro='A quantidade informada é maior do que o saldo disponível no lote.'
+                )
+        elif lotes:
+            return render_template(
+                'registrar_baixa.html', produto=produto, usuarios=usuarios, lotes=lotes,
+                erro='Selecione o lote de origem para registrar a baixa.'
+            )
 
         registro = RegistroPerda(
             produto_id=produto.id,
+            lote_id=lote.id if lote else None,
             usuario_id=usuario_id,
             quantidade_perdida=quantidade,
             motivo=motivo,
@@ -139,12 +165,14 @@ def registrar_baixa(produto_id):
         )
         
         produto.quantidade_estoque = max(0.0, produto.quantidade_estoque - quantidade)
+        if lote:
+            lote.quantidade_atual -= quantidade
         
         db.session.add(registro)
         db.session.commit()
         return redirect(url_for('historico_perdas'))
 
-    return render_template('registrar_baixa.html', produto=produto, usuarios=usuarios)
+    return render_template('registrar_baixa.html', produto=produto, usuarios=usuarios, lotes=lotes)
 
 @app.route('/historico-perdas')
 def historico_perdas():

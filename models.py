@@ -66,6 +66,7 @@ class Lote(db.Model):
     quantidade_inicial = db.Column(db.Float, nullable=False)
     quantidade_atual = db.Column(db.Float, nullable=False)
     local_armazenamento = db.Column(db.String(100), nullable=True)
+    perdas = db.relationship('RegistroPerda', backref='lote', lazy=True)
 
     @property
     def dias_para_vencer(self):
@@ -102,6 +103,7 @@ class RegistroPerda(db.Model):
     
     id = db.Column(db.Integer, primary_key=True)
     produto_id = db.Column(db.Integer, db.ForeignKey('produtos.id'), nullable=False)
+    lote_id = db.Column(db.Integer, db.ForeignKey('lotes.id'), nullable=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=True)
     quantidade_perdida = db.Column(db.Float, nullable=False)
     motivo = db.Column(db.String(100), nullable=False)
